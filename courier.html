@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Osiyo Cafe — Kuryer</title>
+
+<!-- PWA: telefon ekraniga "ilova" sifatida qo'shish -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3A2318">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cafe Kuryer">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF3E7; --surface:#FFFFFF; --ink:#3A2318; --muted:#8B7355; --line:#EFE2CE;
+    --saffron:#E8A33D; --saffron-dark:#C97F1F; --sage:#6B8F71; --paprika:#C1552C; --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Manrope',sans-serif;}
+  h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; margin:0;}
+
+  #loginScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    padding:36px 32px; width:100%; max-width:360px; text-align:center;
+  }
+  .login-card h1{font-size:26px; margin-bottom:6px;}
+  .login-card p{color:var(--muted); font-size:13.5px; margin:0 0 22px;}
+  input[type=password], input[type=text], select{
+    width:100%; border:1.5px solid var(--line); background:var(--bg); border-radius:11px;
+    padding:11px 13px; font-family:'Manrope',sans-serif; font-size:14px; color:var(--ink);
+  }
+  input:focus, select:focus{outline:none; border-color:var(--saffron);}
+  button{cursor:pointer; font-family:'Manrope',sans-serif;}
+  .btn-primary{
+    width:100%; margin-top:16px; padding:13px; border:none; border-radius:12px;
+    background:var(--saffron-dark); color:#fff; font-weight:800; font-size:14.5px;
+  }
+  .login-error{color:var(--paprika); font-size:12.5px; margin-top:10px; display:none;}
+
+  #app{display:none;}
+  header{
+    background:var(--ink); color:#fff; padding:16px 20px; display:flex;
+    align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10;
+  }
+  header h1{font-size:19px; color:#fff;}
+  header .eyebrow{font-size:10.5px; color:#D9C7B4; letter-spacing:.08em; text-transform:uppercase; font-family:'IBM Plex Mono',monospace;}
+  #logoutBtn{background:none; border:1px solid #6b5644; color:#D9C7B4; border-radius:9px; padding:7px 12px; font-size:12.5px; font-weight:700;}
+  #refreshBtn{background:none; border:1px solid #6b5644; color:#D9C7B4; border-radius:9px; padding:7px 10px; font-size:15px; margin-right:8px;}
+
+  main{max-width:640px; margin:0 auto; padding:16px;}
+
+  .who-bar{
+    display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line);
+    border-radius:12px; padding:10px 12px; margin-bottom:16px; font-size:13px;
+  }
+  .who-bar select{flex:1; padding:8px 10px; font-size:13px;}
+
+  .order-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:14px;
+  }
+  .order-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;}
+  .order-top .oid{font-weight:800; font-size:16px;}
+  .order-top .amt{font-family:'IBM Plex Mono',monospace; color:var(--saffron-dark); font-weight:700;}
+  .order-items{font-size:13.5px; color:var(--ink); margin-bottom:10px; line-height:1.5;}
+  .order-status-tag{
+    display:inline-block; font-size:11px; font-weight:800; padding:4px 10px; border-radius:8px;
+    margin-bottom:10px; text-transform:uppercase; letter-spacing:.03em;
+  }
+  .st-tayyor{background:#EAF2EA; color:var(--sage);}
+  .st-yolda{background:#FDF1DD; color:var(--saffron-dark);}
+
+  .info-row{display:flex; align-items:center; gap:8px; font-size:13.5px; margin-bottom:6px;}
+  .info-row a{color:var(--ink); text-decoration:none; font-weight:600;}
+  .map-link{color:var(--sage); font-weight:700; text-decoration:none; font-size:13.5px;}
+
+  .courier-select-row{display:flex; gap:8px; margin:12px 0;}
+  .courier-select-row select{flex:1; padding:9px 10px; font-size:13px;}
+
+  .action-row{display:flex; gap:8px; margin-top:10px;}
+  .action-btn{
+    flex:1; padding:12px; border:none; border-radius:11px; font-weight:800; font-size:13.5px; color:#fff;
+  }
+  .btn-yolda{background:var(--saffron-dark);}
+  .btn-yetkazildi{background:var(--sage);}
+  .action-btn:disabled{opacity:.5;}
+
+  .empty{text-align:center; color:var(--muted); font-size:13.5px; padding:50px 0;}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="eyebrow" style="color:var(--sage); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px;">Osiyo Cafe</div>
+    <h1>Kuryer paneli</h1>
+    <p>Davom etish uchun parolni kiriting</p>
+    <input type="password" id="passwordInput" placeholder="Parol">
+    <button class="btn-primary" id="loginBtn">Kirish</button>
+    <div class="login-error" id="loginError">Parol noto'g'ri</div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div>
+      <div class="eyebrow">Osiyo Cafe</div>
+      <h1>Kuryer paneli</h1>
+    </div>
+    <div>
+      <button id="refreshBtn">↻</button>
+      <button id="logoutBtn">Chiqish</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="who-bar">
+      <span>👤 Men:</span>
+      <select id="whoAmI"><option value="">— tanlang —</option></select>
+    </div>
+    <div id="ordersList"></div>
+  </main>
+</div>
+
+<script>
+const API = "";
+
+async function api(path, opts={}) {
+  const res = await fetch(API + path, {credentials:'include', ...opts});
+  if (res.status === 401) { showLogin(); throw new Error('unauth'); }
+  return res;
+}
+
+function showLogin(){
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+function showApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadCouriers();
+  loadOrders();
+}
+
+document.getElementById('loginBtn').onclick = async ()=>{
+  const password = document.getElementById('passwordInput').value;
+  const res = await fetch(API + '/api/courier/login', {
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({password})
+  });
+  if(res.ok){ showApp(); } else { document.getElementById('loginError').style.display = 'block'; }
+};
+document.getElementById('passwordInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+document.getElementById('logoutBtn').onclick = async ()=>{
+  await fetch(API + '/api/courier/logout', {method:'POST', credentials:'include'});
+  showLogin();
+};
+document.getElementById('refreshBtn').onclick = loadOrders;
+
+function fmt(n){ return Number(n||0).toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
+
+/* ---- "Men kimman" — shu qurilmada eslab qoladi ---- */
+document.getElementById('whoAmI').onchange = (e)=>{
+  localStorage.setItem('courier_name', e.target.value);
+};
+
+async function loadCouriers(){
+  const sel = document.getElementById('whoAmI');
+  try{
+    const res = await api('/api/courier/couriers');
+    const names = await res.json();
+    const saved = localStorage.getItem('courier_name') || '';
+    sel.innerHTML = '<option value="">— tanlang —</option>' + names.map(n=>`<option value="${n}" ${n===saved?'selected':''}>${n}</option>`).join('');
+  } catch(e){}
+}
+
+const STATUS_TAG = {
+  tayyor: ['✅ Tayyor — olib ketishga tayyor', 'st-tayyor'],
+  yolda: ['🚚 Yo\'lda', 'st-yolda'],
+};
+
+async function loadOrders(){
+  const list = document.getElementById('ordersList');
+  list.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
+  try{
+    const res = await api('/api/courier/orders');
+    const orders = await res.json();
+    if(orders.length === 0){
+      list.innerHTML = '<div class="empty">Hozircha yetkazish kerak bo\'lgan buyurtma yo\'q 🎉</div>';
+      return;
+    }
+    list.innerHTML = orders.map(o=>{
+      const itemsText = o.items.map(i=>`${i.name} × ${i.qty}`).join(', ');
+      const [tagText, tagClass] = STATUS_TAG[o.status] || [o.status, ''];
+      return `
+      <div class="order-card">
+        <div class="order-top">
+          <span class="oid">#${o.id}</span>
+          <span class="amt">${fmt(o.total)}</span>
+        </div>
+        <span class="order-status-tag ${tagClass}">${tagText}</span>
+        <div class="order-items">${itemsText}</div>
+        <div class="info-row">📍 ${o.address || '-'}</div>
+        ${o.lat && o.lng ? `<div class="info-row"><a class="map-link" href="https://maps.google.com/?q=${o.lat},${o.lng}" target="_blank">🗺 Xaritada ochish (aniq joylashuv)</a></div>` : ''}
+        <div class="info-row">📞 <a href="tel:${o.phone}">${o.phone || '-'}</a></div>
+        ${o.comment ? `<div class="info-row">📝 ${o.comment}</div>` : ''}
+        ${o.courier_name ? `<div class="info-row">🧑‍💼 Mas'ul: <b>${o.courier_name}</b></div>` : ''}
+
+        <div class="action-row">
+          ${o.status === 'tayyor' ? `<button class="action-btn btn-yolda" data-act="yolda" data-id="${o.id}">🚚 Yo'lga chiqdim</button>` : ''}
+          ${o.status === 'yolda' ? `<button class="action-btn btn-yetkazildi" data-act="yetkazildi" data-id="${o.id}">✅ Yetkazdim</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('[data-act]').forEach(btn=>{
+      btn.onclick = async ()=>{
+        const courier_name = document.getElementById('whoAmI').value;
+        if(!courier_name){ alert("Avval yuqoridan o'zingizni tanlang"); return; }
+        btn.disabled = true; btn.textContent = 'Yuborilmoqda...';
+        try{
+          await api('/api/courier/orders/'+btn.dataset.id, {
+            method:'PATCH', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({status: btn.dataset.act, courier_name})
+          });
+          loadOrders();
+        } catch(e){
+          btn.disabled = false;
+          alert('Xatolik yuz berdi');
+        }
+      };
+    });
+  } catch(e){
+    list.innerHTML = '<div class="empty">Yuklab bo\'lmadi. Qayta urinib ko\'ring.</div>';
+  }
+}
+
+/* Sessiya bormi tekshirib ko'ramiz */
+(async ()=>{
+  try{
+    const res = await fetch(API + '/api/courier/couriers', {credentials:'include'});
+    if(res.ok){ showApp(); } else { showLogin(); }
+  } catch(e){ showLogin(); }
+})();
+</script>
+</body>
+</html>
